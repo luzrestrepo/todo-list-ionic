@@ -9,10 +9,12 @@ import {
   IonItem,
   IonList,
   IonTitle,
-  IonToolbar
+  IonToolbar,
+  IonListHeader,
 } from '@ionic/angular/standalone';
 
 import { TaskService } from '../core/services/task.service';
+import { CategoryService } from '../core/services/category.service';
 
 @Component({
   selector: 'app-home',
@@ -28,24 +30,30 @@ import { TaskService } from '../core/services/task.service';
     IonInput,
     IonButton,
     IonList,
-    IonLabel
+    IonLabel,
+    IonListHeader
   ]
 })
 export class HomePage {
   private readonly taskService = inject(TaskService);
+  private readonly categoryService = inject(CategoryService);
 
   readonly tasks = this.taskService.tasks;
+  readonly categories = this.categoryService.categories;
 
   newTaskTitle = '';
+  newCategoryName = '';
+
+  editingCategoryId: string | null = null;
+  editingCategoryName = '';
 
   addTask(): void {
     const title = this.newTaskTitle.trim();
-  
+
     if (!title) {
-      console.log('No hay título');
       return;
     }
-  
+
     this.taskService.addTask(title);
     this.newTaskTitle = '';
   }
@@ -56,5 +64,52 @@ export class HomePage {
 
   deleteTask(id: string): void {
     this.taskService.deleteTask(id);
+  }
+
+  addCategory(): void {
+    const name = this.newCategoryName.trim();
+
+    if (!name) {
+      return;
+    }
+
+    this.categoryService.addCategory(name);
+    this.newCategoryName = '';
+  }
+
+  startEditingCategory(
+    categoryId: string,
+    categoryName: string
+  ): void {
+    this.editingCategoryId = categoryId;
+    this.editingCategoryName = categoryName;
+  }
+
+  saveCategory(): void {
+    if (!this.editingCategoryId) {
+      return;
+    }
+
+    const name = this.editingCategoryName.trim();
+
+    if (!name) {
+      return;
+    }
+
+    this.categoryService.updateCategory(
+      this.editingCategoryId,
+      name
+    );
+
+    this.cancelEditingCategory();
+  }
+
+  cancelEditingCategory(): void {
+    this.editingCategoryId = null;
+    this.editingCategoryName = '';
+  }
+
+  deleteCategory(id: string): void {
+    this.categoryService.deleteCategory(id);
   }
 }
