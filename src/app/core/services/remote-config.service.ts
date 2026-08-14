@@ -1,10 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  getRemoteConfig,
-  fetchAndActivate,
-  getBoolean,
-  RemoteConfig
-} from 'firebase/remote-config';
+import type { RemoteConfig } from 'firebase/remote-config';
 
 import { FirebaseService } from './firebase.service';
 
@@ -14,32 +9,41 @@ import { FirebaseService } from './firebase.service';
 export class RemoteConfigService {
   private readonly firebaseService = inject(FirebaseService);
 
-  private readonly remoteConfig: RemoteConfig;
-
-  constructor() {
-    this.remoteConfig = getRemoteConfig(
-      this.firebaseService.getApp()
-    );
-
-    this.remoteConfig.defaultConfig = {
-      enable_task_categories: true
-    };
-
-    this.remoteConfig.settings.minimumFetchIntervalMillis = 0;
-  }
+  private remoteConfigPromise?: Promise<RemoteConfig>;
 
   async getFeatureFlag(key: string): Promise<boolean> {
-    try {
-      await fetchAndActivate(this.remoteConfig);
+    const { fetchAndActivate, getBoolean } = await import(
+      'firebase/remote-config'
+    );
+    const remoteConfig = await this.resolveRemoteConfig();
 
-      return getBoolean(this.remoteConfig, key);
+    try {
+      await fetchAndActivate(remoteConfig);
     } catch (error) {
       console.warn(
         `No fue posible obtener Remote Config para "${key}". Se utilizará el valor predeterminado.`,
         error
       );
-
-      return getBoolean(this.remoteConfig, key);
     }
+
+    return getBoolean(remoteConfig, key);
+  }
+
+  private async resolveRemoteConfig(): Promise<RemoteConfig> {
+    if (!this.remoteConfigPromise) {
+      this.remoteConfigPromise = Promise.all([
+        this.firebaseService.getApp(),
+        import('firebase/remote-config')
+      ]).then(([app, { getRemoteConfig }]) => {
+        const remoteConfig = getRemoteConfig(app);
+
+        remoteConfig.defaultConfig = { enable_task_categories: true };
+        remoteConfig.settings.minimumFetchIntervalMillis = 0;
+
+        return remoteConfig;
+      });
+    }
+
+    return this.remoteConfigPromise;
   }
 }

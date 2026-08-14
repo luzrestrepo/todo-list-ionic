@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { initializeApp, FirebaseApp } from 'firebase/app';
+import type { FirebaseApp } from 'firebase/app';
 
 import { environment } from '../../../environments/environment';
 
@@ -7,9 +7,15 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class FirebaseService {
-  private readonly app: FirebaseApp = initializeApp(environment.firebase);
+  private appPromise?: Promise<FirebaseApp>;
 
-  getApp(): FirebaseApp {
-    return this.app;
+  getApp(): Promise<FirebaseApp> {
+    if (!this.appPromise) {
+      this.appPromise = import('firebase/app').then(({ initializeApp }) =>
+        initializeApp(environment.firebase)
+      );
+    }
+
+    return this.appPromise;
   }
 }

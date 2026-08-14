@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import {
   IonButton,
   IonContent,
@@ -15,6 +16,7 @@ import {
   IonSelectOption
 } from '@ionic/angular/standalone';
 
+import { Task } from '../core/models/task.model';
 import { TaskService } from '../core/services/task.service';
 import { CategoryService } from '../core/services/category.service';
 import { RemoteConfigService } from '../core/services/remote-config.service';
@@ -23,8 +25,10 @@ import { RemoteConfigService } from '../core/services/remote-config.service';
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
+    ScrollingModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -43,15 +47,24 @@ export class HomePage {
   private readonly taskService = inject(TaskService);
   private readonly categoryService = inject(CategoryService);
   private readonly remoteConfigService = inject(RemoteConfigService);
-
-  showCategories = false;
+  
+  readonly showCategories = signal(true);
   readonly tasks = this.taskService.tasks;
   readonly categories = this.categoryService.categories;
 
- 
+  readonly selectedCategoryId = signal<string | undefined>(undefined);
+  readonly selectedFilterCategoryId = signal<string | undefined>(undefined);
 
-  selectedCategoryId: string | undefined;
-  selectedFilterCategoryId: string | undefined;
+  readonly filteredTasks = computed(() => {
+    const categoryId = this.selectedFilterCategoryId();
+    const tasks = this.tasks();
+
+    if (!categoryId) {
+      return tasks;
+    }
+
+    return tasks.filter(task => task.categoryId === categoryId);
+  });
 
   newTaskTitle = '';
   newCategoryName = '';
@@ -72,11 +85,11 @@ export class HomePage {
   
     this.taskService.addTask(
       title,
-      this.selectedCategoryId
+      this.selectedCategoryId()
     );
-  
+
     this.newTaskTitle = '';
-    this.selectedCategoryId = undefined;
+    this.selectedCategoryId.set(undefined);
   }
 
   toggleTask(id: string): void {
@@ -134,16 +147,8 @@ export class HomePage {
     this.categoryService.deleteCategory(id);
   }
 
-  get filteredTasks() {
-    const categoryId = this.selectedFilterCategoryId;
-  
-    if (!categoryId) {
-      return this.tasks();
-    }
-  
-    return this.tasks().filter(
-      task => task.categoryId === categoryId
-    );
+  trackByTaskId(_index: number, task: Task): string {
+    return task.id;
   }
 
   getCategoryName(categoryId: string | undefined): string {
@@ -159,9 +164,10 @@ export class HomePage {
   }
 
   private async loadFeatureFlags(): Promise<void> {
-    this.showCategories =
-      await this.remoteConfigService.getFeatureFlag(
-        'enable_task_categories'
-      );
+    const enabled = await this.remoteConfigService.getFeatureFlag(
+      'enable_task_categories'
+    );
+
+    this.showCategories.set(enabled);
   }
 }

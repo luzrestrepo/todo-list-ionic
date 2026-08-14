@@ -11,10 +11,11 @@
       <ion-label>Tareas</ion-label>
     </ion-list-header>
 
-    @if (showCategories) {
+    @if (showCategories()) {
       <ion-item>
         <ion-select
-          [(ngModel)]="selectedFilterCategoryId"
+          [ngModel]="selectedFilterCategoryId()"
+          (ngModelChange)="selectedFilterCategoryId.set($event)"
           label="Filtrar por categoría"
           label-placement="stacked"
           placeholder="Todas">
@@ -41,9 +42,10 @@
         placeholder="Ej: Comprar mercado">
       </ion-input>
 
-      @if (showCategories) {
+      @if (showCategories()) {
         <ion-select
-          [(ngModel)]="selectedCategoryId"
+          [ngModel]="selectedCategoryId()"
+          (ngModelChange)="selectedCategoryId.set($event)"
           label="Categoría"
           label-placement="stacked"
           placeholder="Selecciona una categoría">
@@ -64,46 +66,46 @@
       </ion-button>
     </ion-item>
 
-    @for (task of filteredTasks; track task.id) {
-      <ion-item>
-
-        <ion-label>
-          <h2>{{ task.title }}</h2>
-
-          @if (showCategories) {
-            <p>
-              Categoría: {{ getCategoryName(task.categoryId) }}
-            </p>
-          }
-
-          @if (task.completed) {
-            <p>Completada</p>
-          } @else {
-            <p>Pendiente</p>
-          }
-        </ion-label>
-
-        <ion-button
-          slot="end"
-          fill="clear"
-          (click)="toggleTask(task.id)">
-          {{ task.completed ? 'Desmarcar' : 'Completar' }}
-        </ion-button>
-
-        <ion-button
-          slot="end"
-          fill="clear"
-          color="danger"
-          (click)="deleteTask(task.id)">
-          Eliminar
-        </ion-button>
-
-      </ion-item>
-    }
-
   </ion-list>
+  
+  <cdk-virtual-scroll-viewport itemSize="88" class="tasks-viewport">
+    <ion-item *cdkVirtualFor="let task of filteredTasks(); trackBy: trackByTaskId">
 
-  @if (showCategories) {
+      <ion-label>
+        <h2>{{ task.title }}</h2>
+
+        @if (showCategories()) {
+          <p>
+            Categoría: {{ getCategoryName(task.categoryId) }}
+          </p>
+        }
+
+        @if (task.completed) {
+          <p>Completada</p>
+        } @else {
+          <p>Pendiente</p>
+        }
+      </ion-label>
+
+      <ion-button
+        slot="end"
+        fill="clear"
+        (click)="toggleTask(task.id)">
+        {{ task.completed ? 'Desmarcar' : 'Completar' }}
+      </ion-button>
+
+      <ion-button
+        slot="end"
+        fill="clear"
+        color="danger"
+        (click)="deleteTask(task.id)">
+        Eliminar
+      </ion-button>
+
+    </ion-item>
+  </cdk-virtual-scroll-viewport>
+
+  @if (showCategories()) {
     <ion-list>
 
       <ion-list-header>
