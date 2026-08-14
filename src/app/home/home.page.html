@@ -1,48 +1,35 @@
-<ion-header>
-  <ion-toolbar>
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
     <ion-title>To-Do List</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" [fullscreen]="true">
+<div class="page-container">
 
-  <ion-list>
-    <ion-list-header>
-      <ion-label>Tareas</ion-label>
-    </ion-list-header>
-
-    @if (showCategories()) {
-      <ion-item>
-        <ion-select
-          [ngModel]="selectedFilterCategoryId()"
-          (ngModelChange)="selectedFilterCategoryId.set($event)"
-          label="Filtrar por categoría"
-          label-placement="stacked"
-          placeholder="Todas">
-
-          <ion-select-option [value]="undefined">
-            Todas
-          </ion-select-option>
-
-          @for (category of categories(); track category.id) {
-            <ion-select-option [value]="category.id">
-              {{ category.name }}
-            </ion-select-option>
-          }
-
-        </ion-select>
-      </ion-item>
-    }
-
-    <ion-item>
+  <section class="panel">
+    <ion-item lines="none" class="form-item">
+      <ion-icon slot="start" name="create-outline" color="medium"></ion-icon>
       <ion-input
         [(ngModel)]="newTaskTitle"
         label="Nueva tarea"
         label-placement="stacked"
-        placeholder="Ej: Comprar mercado">
+        placeholder="Ej: Comprar mercado"
+        (keyup.enter)="addTask()">
       </ion-input>
 
-      @if (showCategories()) {
+      <ion-button
+        slot="end"
+        fill="clear"
+        [disabled]="!newTaskTitle.trim()"
+        (click)="addTask()">
+        <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    @if (showCategories()) {
+      <ion-item lines="none" class="form-item">
+        <ion-icon slot="start" name="pricetag-outline" color="medium"></ion-icon>
         <ion-select
           [ngModel]="selectedCategoryId()"
           (ngModelChange)="selectedCategoryId.set($event)"
@@ -57,127 +44,181 @@
           }
 
         </ion-select>
+      </ion-item>
+    }
+  </section>
+
+  @if (showCategories()) {
+    <section class="panel">
+      <h2 class="section-title">Categorías</h2>
+
+      <ion-item lines="none" class="form-item">
+        <ion-icon slot="start" name="pricetag-outline" color="medium"></ion-icon>
+        <ion-input
+          [(ngModel)]="newCategoryName"
+          label="Nueva categoría"
+          label-placement="stacked"
+          placeholder="Ej: Trabajo"
+          (keyup.enter)="addCategory()">
+        </ion-input>
+
+        <ion-button
+          slot="end"
+          fill="clear"
+          [disabled]="!newCategoryName.trim()"
+          (click)="addCategory()">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      @if (categories().length === 0) {
+        <div class="empty-state">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          <p>Todavía no tienes categorías</p>
+        </div>
+      } @else {
+        <div class="category-list">
+          @for (category of categories(); track category.id) {
+            <ion-item lines="full" class="category-item">
+
+              @if (editingCategoryId === category.id) {
+
+                <ion-input
+                  [(ngModel)]="editingCategoryName"
+                  label="Editar categoría"
+                  label-placement="stacked"
+                  (keyup.enter)="saveCategory()">
+                </ion-input>
+
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  color="success"
+                  [disabled]="!editingCategoryName.trim()"
+                  (click)="saveCategory()">
+                  <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+                <ion-button slot="end" fill="clear" color="medium" (click)="cancelEditingCategory()">
+                  <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+              } @else {
+
+                <ion-chip color="tertiary" [outline]="true">
+                  <ion-icon name="pricetag-outline"></ion-icon>
+                  <ion-label>{{ category.name }}</ion-label>
+                </ion-chip>
+
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  (click)="startEditingCategory(category.id, category.name)">
+                  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  color="danger"
+                  (click)="deleteCategory(category.id)">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+              }
+
+            </ion-item>
+          }
+        </div>
       }
+    </section>
+  }
 
-      <ion-button
-        slot="end"
-        (click)="addTask()">
-        Agregar
-      </ion-button>
-    </ion-item>
+  @if (showCategories() && categories().length > 0) {
+    <ion-item lines="none" class="form-item filter-item">
+      <ion-icon slot="start" name="funnel-outline" color="medium"></ion-icon>
+      <ion-select
+        [ngModel]="selectedFilterCategoryId()"
+        (ngModelChange)="selectedFilterCategoryId.set($event)"
+        label="Filtrar por categoría"
+        label-placement="stacked"
+        placeholder="Todas">
 
-  </ion-list>
-  
-  <cdk-virtual-scroll-viewport itemSize="88" class="tasks-viewport">
-    <ion-item *cdkVirtualFor="let task of filteredTasks(); trackBy: trackByTaskId">
+        <ion-select-option [value]="undefined">
+          Todas
+        </ion-select-option>
 
-      <ion-label>
-        <h2>{{ task.title }}</h2>
-
-        @if (showCategories()) {
-          <p>
-            Categoría: {{ getCategoryName(task.categoryId) }}
-          </p>
+        @for (category of categories(); track category.id) {
+          <ion-select-option [value]="category.id">
+            {{ category.name }}
+          </ion-select-option>
         }
 
-        @if (task.completed) {
-          <p>Completada</p>
-        } @else {
-          <p>Pendiente</p>
+      </ion-select>
+    </ion-item>
+  }
+
+  <h2 class="section-title">
+    Tareas
+    <ion-badge color="primary">{{ filteredTasks().length }}</ion-badge>
+  </h2>
+
+  <ng-template #taskRow let-task>
+    <ion-item
+      class="task-item"
+      [class.completed]="task.completed"
+      lines="full">
+
+      <ion-button
+        slot="start"
+        fill="clear"
+        class="toggle-button"
+        (click)="toggleTask(task.id)">
+        <ion-icon
+          [name]="task.completed ? 'checkmark-circle' : 'ellipse-outline'"
+          [color]="task.completed ? 'success' : 'medium'"
+          size="large">
+        </ion-icon>
+      </ion-button>
+
+      <ion-label>
+        <h2 class="task-title">{{ task.title }}</h2>
+
+        @if (showCategories() && task.categoryId) {
+          <ion-chip color="tertiary" [outline]="true" class="task-chip">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            <ion-label>{{ getCategoryName(task.categoryId) }}</ion-label>
+          </ion-chip>
         }
       </ion-label>
 
       <ion-button
         slot="end"
         fill="clear"
-        (click)="toggleTask(task.id)">
-        {{ task.completed ? 'Desmarcar' : 'Completar' }}
-      </ion-button>
-
-      <ion-button
-        slot="end"
-        fill="clear"
         color="danger"
         (click)="deleteTask(task.id)">
-        Eliminar
+        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
       </ion-button>
 
     </ion-item>
-  </cdk-virtual-scroll-viewport>
+  </ng-template>
 
-  @if (showCategories()) {
-    <ion-list>
-
-      <ion-list-header>
-        <ion-label>Categorías</ion-label>
-      </ion-list-header>
-
-      <ion-item>
-        <ion-input
-          [(ngModel)]="newCategoryName"
-          label="Nueva categoría"
-          label-placement="stacked"
-          placeholder="Ej: Trabajo">
-        </ion-input>
-
-        <ion-button
-          slot="end"
-          (click)="addCategory()">
-          Agregar
-        </ion-button>
-      </ion-item>
-      
-      @for (category of categories(); track category.id) {
-        <ion-item>
-
-          @if (editingCategoryId === category.id) {
-
-            <ion-input
-              [(ngModel)]="editingCategoryName"
-              label="Editar categoría"
-              label-placement="stacked">
-            </ion-input>
-
-            <ion-button
-              slot="end"
-              (click)="saveCategory()">
-              Guardar
-            </ion-button>
-
-            <ion-button
-              slot="end"
-              fill="clear"
-              (click)="cancelEditingCategory()">
-              Cancelar
-            </ion-button>
-
-          } @else {
-
-            <ion-label>
-              {{ category.name }}
-            </ion-label>
-
-            <ion-button
-              slot="end"
-              fill="clear"
-              (click)="startEditingCategory(category.id, category.name)">
-              Editar
-            </ion-button>
-
-            <ion-button
-              slot="end"
-              fill="clear"
-              color="danger"
-              (click)="deleteCategory(category.id)">
-              Eliminar
-            </ion-button>
-
-          }
-
-        </ion-item>
-      }
-
-    </ion-list>
+  @if (filteredTasks().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="clipboard-outline"></ion-icon>
+      <p>No hay tareas para mostrar</p>
+    </div>
+  } @else if (useVirtualScroll()) {
+    <cdk-virtual-scroll-viewport itemSize="88" class="tasks-viewport">
+      <ng-container *cdkVirtualFor="let task of filteredTasks(); trackBy: trackByTaskId">
+        <ng-container [ngTemplateOutlet]="taskRow" [ngTemplateOutletContext]="{ $implicit: task }"></ng-container>
+      </ng-container>
+    </cdk-virtual-scroll-viewport>
+  } @else {
+    @for (task of filteredTasks(); track task.id) {
+      <ng-container [ngTemplateOutlet]="taskRow" [ngTemplateOutletContext]="{ $implicit: task }"></ng-container>
+    }
   }
 
+</div>
 </ion-content>

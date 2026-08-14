@@ -1,17 +1,33 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { addIcons } from 'ionicons';
 import {
+  addCircleOutline,
+  addOutline,
+  checkmarkCircle,
+  checkmarkOutline,
+  clipboardOutline,
+  closeOutline,
+  createOutline,
+  ellipseOutline,
+  funnelOutline,
+  pricetagOutline,
+  trashOutline
+} from 'ionicons/icons';
+import {
+  IonBadge,
   IonButton,
+  IonChip,
   IonContent,
   IonHeader,
+  IonIcon,
   IonInput,
   IonLabel,
   IonItem,
-  IonList,
   IonTitle,
   IonToolbar,
-  IonListHeader,
   IonSelect,
   IonSelectOption
 } from '@ionic/angular/standalone';
@@ -21,6 +37,22 @@ import { TaskService } from '../core/services/task.service';
 import { CategoryService } from '../core/services/category.service';
 import { RemoteConfigService } from '../core/services/remote-config.service';
 
+const VIRTUAL_SCROLL_THRESHOLD = 30;
+
+addIcons({
+  'add-circle-outline': addCircleOutline,
+  'add-outline': addOutline,
+  'checkmark-circle': checkmarkCircle,
+  'checkmark-outline': checkmarkOutline,
+  'clipboard-outline': clipboardOutline,
+  'close-outline': closeOutline,
+  'create-outline': createOutline,
+  'ellipse-outline': ellipseOutline,
+  'funnel-outline': funnelOutline,
+  'pricetag-outline': pricetagOutline,
+  'trash-outline': trashOutline
+});
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -29,6 +61,7 @@ import { RemoteConfigService } from '../core/services/remote-config.service';
   imports: [
     FormsModule,
     ScrollingModule,
+    NgTemplateOutlet,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -36,11 +69,12 @@ import { RemoteConfigService } from '../core/services/remote-config.service';
     IonItem,
     IonInput,
     IonButton,
-    IonList,
     IonLabel,
-    IonListHeader,
     IonSelect,
-    IonSelectOption
+    IonSelectOption,
+    IonIcon,
+    IonChip,
+    IonBadge
   ]
 })
 export class HomePage {
@@ -65,6 +99,10 @@ export class HomePage {
 
     return tasks.filter(task => task.categoryId === categoryId);
   });
+
+  readonly useVirtualScroll = computed(
+    () => this.filteredTasks().length > VIRTUAL_SCROLL_THRESHOLD
+  );
 
   newTaskTitle = '';
   newCategoryName = '';
