@@ -6,11 +6,32 @@
 
 <ion-content class="ion-padding">
 
-  <!-- Crear tarea -->
   <ion-list>
     <ion-list-header>
       <ion-label>Tareas</ion-label>
     </ion-list-header>
+
+    @if (showCategories) {
+      <ion-item>
+        <ion-select
+          [(ngModel)]="selectedFilterCategoryId"
+          label="Filtrar por categoría"
+          label-placement="stacked"
+          placeholder="Todas">
+
+          <ion-select-option [value]="undefined">
+            Todas
+          </ion-select-option>
+
+          @for (category of categories(); track category.id) {
+            <ion-select-option [value]="category.id">
+              {{ category.name }}
+            </ion-select-option>
+          }
+
+        </ion-select>
+      </ion-item>
+    }
 
     <ion-item>
       <ion-input
@@ -20,6 +41,22 @@
         placeholder="Ej: Comprar mercado">
       </ion-input>
 
+      @if (showCategories) {
+        <ion-select
+          [(ngModel)]="selectedCategoryId"
+          label="Categoría"
+          label-placement="stacked"
+          placeholder="Selecciona una categoría">
+
+          @for (category of categories(); track category.id) {
+            <ion-select-option [value]="category.id">
+              {{ category.name }}
+            </ion-select-option>
+          }
+
+        </ion-select>
+      }
+
       <ion-button
         slot="end"
         (click)="addTask()">
@@ -27,11 +64,17 @@
       </ion-button>
     </ion-item>
 
-    <!-- Lista de tareas -->
-    @for (task of tasks(); track task.id) {
+    @for (task of filteredTasks; track task.id) {
       <ion-item>
+
         <ion-label>
           <h2>{{ task.title }}</h2>
+
+          @if (showCategories) {
+            <p>
+              Categoría: {{ getCategoryName(task.categoryId) }}
+            </p>
+          }
 
           @if (task.completed) {
             <p>Completada</p>
@@ -54,83 +97,85 @@
           (click)="deleteTask(task.id)">
           Eliminar
         </ion-button>
+
       </ion-item>
     }
+
   </ion-list>
 
-  <!-- Categorías -->
-  <ion-list>
-    <ion-list-header>
-      <ion-label>Categorías</ion-label>
-    </ion-list-header>
+  @if (showCategories) {
+    <ion-list>
 
-    <!-- Crear categoría -->
-    <ion-item>
-      <ion-input
-        [(ngModel)]="newCategoryName"
-        label="Nueva categoría"
-        label-placement="stacked"
-        placeholder="Ej: Trabajo">
-      </ion-input>
+      <ion-list-header>
+        <ion-label>Categorías</ion-label>
+      </ion-list-header>
 
-      <ion-button
-        slot="end"
-        (click)="addCategory()">
-        Agregar
-      </ion-button>
-    </ion-item>
-
-    <!-- Lista de categorías -->
-    @for (category of categories(); track category.id) {
       <ion-item>
+        <ion-input
+          [(ngModel)]="newCategoryName"
+          label="Nueva categoría"
+          label-placement="stacked"
+          placeholder="Ej: Trabajo">
+        </ion-input>
 
-        @if (editingCategoryId === category.id) {
-
-          <ion-input
-            [(ngModel)]="editingCategoryName"
-            label="Editar categoría"
-            label-placement="stacked">
-          </ion-input>
-
-          <ion-button
-            slot="end"
-            (click)="saveCategory()">
-            Guardar
-          </ion-button>
-
-          <ion-button
-            slot="end"
-            fill="clear"
-            (click)="cancelEditingCategory()">
-            Cancelar
-          </ion-button>
-
-        } @else {
-
-          <ion-label>
-            {{ category.name }}
-          </ion-label>
-
-          <ion-button
-            slot="end"
-            fill="clear"
-            (click)="startEditingCategory(category.id, category.name)">
-            Editar
-          </ion-button>
-
-          <ion-button
-            slot="end"
-            fill="clear"
-            color="danger"
-            (click)="deleteCategory(category.id)">
-            Eliminar
-          </ion-button>
-
-        }
-
+        <ion-button
+          slot="end"
+          (click)="addCategory()">
+          Agregar
+        </ion-button>
       </ion-item>
-    }
+      
+      @for (category of categories(); track category.id) {
+        <ion-item>
 
-  </ion-list>
+          @if (editingCategoryId === category.id) {
+
+            <ion-input
+              [(ngModel)]="editingCategoryName"
+              label="Editar categoría"
+              label-placement="stacked">
+            </ion-input>
+
+            <ion-button
+              slot="end"
+              (click)="saveCategory()">
+              Guardar
+            </ion-button>
+
+            <ion-button
+              slot="end"
+              fill="clear"
+              (click)="cancelEditingCategory()">
+              Cancelar
+            </ion-button>
+
+          } @else {
+
+            <ion-label>
+              {{ category.name }}
+            </ion-label>
+
+            <ion-button
+              slot="end"
+              fill="clear"
+              (click)="startEditingCategory(category.id, category.name)">
+              Editar
+            </ion-button>
+
+            <ion-button
+              slot="end"
+              fill="clear"
+              color="danger"
+              (click)="deleteCategory(category.id)">
+              Eliminar
+            </ion-button>
+
+          }
+
+        </ion-item>
+      }
+
+    </ion-list>
+  }
 
 </ion-content>
