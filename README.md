@@ -156,5 +156,5 @@ Los servicios de estado (`TaskService`, `CategoryService`) exponen `signal`s de 
 
 ## Pruebas realizadas
 
-Se probó manualmente en navegador (`ng serve`) el flujo completo: crear/completar/eliminar tareas, crear/editar/eliminar categorías, asignar categoría a una tarea, filtrar por categoría, y persistencia tras recargar la página. También se generó y verificó un APK de Android real (`cordova build android`) sobre un build de producción de Angular.
+Se probó manualmente en navegador (`ng serve`) el flujo completo: crear/completar/eliminar tareas, crear/editar/eliminar categorías, asignar categoría a una tarea, filtrar por categoría, y persistencia tras recargar la página. También se generó un APK real y se instaló/verificó en un **emulador Android físico (Pixel 9a, API 36)**, incluyendo el mismo flujo completo con interacciones táctiles reales.
 
