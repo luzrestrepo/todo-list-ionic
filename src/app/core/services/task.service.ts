@@ -17,16 +17,17 @@ export class TaskService {
     this.loadTasks();
   }
 
-  addTask(title: string): void {
+  addTask(title: string, categoryId?: string): void {
     const task: Task = {
       id: crypto.randomUUID(),
       title: title.trim(),
       completed: false,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      categoryId
     };
-
+  
     const tasks = [...this.tasksState(), task];
-
+  
     this.tasksState.set(tasks);
     this.persistTasks(tasks);
   }
@@ -38,6 +39,17 @@ export class TaskService {
         : task
     );
 
+    this.tasksState.set(tasks);
+    this.persistTasks(tasks);
+  }
+
+  setCategory(id: string, categoryId: string | undefined): void {
+    const tasks = this.tasksState().map(task =>
+      task.id === id
+        ? { ...task, categoryId }
+        : task
+    );
+  
     this.tasksState.set(tasks);
     this.persistTasks(tasks);
   }

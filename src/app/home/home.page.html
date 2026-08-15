@@ -1,51 +1,224 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Mis tareas</ion-title>
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>To-Do List</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="task-form">
-    <ion-item>
+<ion-content class="ion-padding" [fullscreen]="true">
+<div class="page-container">
+
+  <section class="panel">
+    <ion-item lines="none" class="form-item">
+      <ion-icon slot="start" name="create-outline" color="medium"></ion-icon>
       <ion-input
         [(ngModel)]="newTaskTitle"
         label="Nueva tarea"
         label-placement="stacked"
-        placeholder="Escribe una tarea">
+        placeholder="Ej: Comprar mercado"
+        (keyup.enter)="addTask()">
       </ion-input>
+
+      <ion-button
+        slot="end"
+        fill="clear"
+        [disabled]="!newTaskTitle.trim()"
+        (click)="addTask()">
+        <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+      </ion-button>
     </ion-item>
-  
-    <ion-button expand="block" (click)="addTask()">
-      Agregar tarea
-    </ion-button>
-  </div>
 
-  <ion-list>
-    @for (task of tasks(); track task.id) {
-      <ion-item>
-        <ion-label>
-          <h2>{{ task.title }}</h2>
+    @if (showCategories()) {
+      <ion-item lines="none" class="form-item">
+        <ion-icon slot="start" name="pricetag-outline" color="medium"></ion-icon>
+        <ion-select
+          [ngModel]="selectedCategoryId()"
+          (ngModelChange)="selectedCategoryId.set($event)"
+          label="Categoría"
+          label-placement="stacked"
+          placeholder="Selecciona una categoría">
 
-          <p>
-            {{ task.completed ? 'Completada' : 'Pendiente' }}
-          </p>
-        </ion-label>
+          @for (category of categories(); track category.id) {
+            <ion-select-option [value]="category.id">
+              {{ category.name }}
+            </ion-select-option>
+          }
 
-        <ion-button
-          slot="end"
-          fill="clear"
-          (click)="toggleTask(task.id)">
-          {{ task.completed ? 'Desmarcar' : 'Completar' }}
-        </ion-button>
-
-        <ion-button
-          slot="end"
-          fill="clear"
-          color="danger"
-          (click)="deleteTask(task.id)">
-          Eliminar
-        </ion-button>
+        </ion-select>
       </ion-item>
     }
-  </ion-list>
+  </section>
+
+  @if (showCategories()) {
+    <section class="panel">
+      <h2 class="section-title">Categorías</h2>
+
+      <ion-item lines="none" class="form-item">
+        <ion-icon slot="start" name="pricetag-outline" color="medium"></ion-icon>
+        <ion-input
+          [(ngModel)]="newCategoryName"
+          label="Nueva categoría"
+          label-placement="stacked"
+          placeholder="Ej: Trabajo"
+          (keyup.enter)="addCategory()">
+        </ion-input>
+
+        <ion-button
+          slot="end"
+          fill="clear"
+          [disabled]="!newCategoryName.trim()"
+          (click)="addCategory()">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      @if (categories().length === 0) {
+        <div class="empty-state">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          <p>Todavía no tienes categorías</p>
+        </div>
+      } @else {
+        <div class="category-list">
+          @for (category of categories(); track category.id) {
+            <ion-item lines="full" class="category-item">
+
+              @if (editingCategoryId === category.id) {
+
+                <ion-input
+                  [(ngModel)]="editingCategoryName"
+                  label="Editar categoría"
+                  label-placement="stacked"
+                  (keyup.enter)="saveCategory()">
+                </ion-input>
+
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  color="success"
+                  [disabled]="!editingCategoryName.trim()"
+                  (click)="saveCategory()">
+                  <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+                <ion-button slot="end" fill="clear" color="medium" (click)="cancelEditingCategory()">
+                  <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+              } @else {
+
+                <ion-chip color="tertiary" [outline]="true">
+                  <ion-icon name="pricetag-outline"></ion-icon>
+                  <ion-label>{{ category.name }}</ion-label>
+                </ion-chip>
+
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  (click)="startEditingCategory(category.id, category.name)">
+                  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+                <ion-button
+                  slot="end"
+                  fill="clear"
+                  color="danger"
+                  (click)="deleteCategory(category.id)">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+              }
+
+            </ion-item>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  @if (showCategories() && categories().length > 0) {
+    <ion-item lines="none" class="form-item filter-item">
+      <ion-icon slot="start" name="funnel-outline" color="medium"></ion-icon>
+      <ion-select
+        [ngModel]="selectedFilterCategoryId()"
+        (ngModelChange)="selectedFilterCategoryId.set($event)"
+        label="Filtrar por categoría"
+        label-placement="stacked"
+        placeholder="Todas">
+
+        <ion-select-option value="">
+          Todas
+        </ion-select-option>
+
+        @for (category of categories(); track category.id) {
+          <ion-select-option [value]="category.id">
+            {{ category.name }}
+          </ion-select-option>
+        }
+
+      </ion-select>
+    </ion-item>
+  }
+
+  <h2 class="section-title">
+    Tareas
+    <ion-badge color="primary">{{ filteredTasks().length }}</ion-badge>
+  </h2>
+
+  <ng-template #taskRow let-task>
+    <ion-item
+      class="task-item"
+      [class.completed]="task.completed"
+      lines="full">
+
+      <ion-button
+        slot="start"
+        fill="clear"
+        class="toggle-button"
+        (click)="toggleTask(task.id)">
+        <ion-icon
+          [name]="task.completed ? 'checkmark-circle' : 'ellipse-outline'"
+          [color]="task.completed ? 'success' : 'medium'"
+          size="large">
+        </ion-icon>
+      </ion-button>
+
+      <ion-label>
+        <h2 class="task-title">{{ task.title }}</h2>
+
+        @if (showCategories() && task.categoryId) {
+          <ion-chip color="tertiary" [outline]="true" class="task-chip">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            <ion-label>{{ getCategoryName(task.categoryId) }}</ion-label>
+          </ion-chip>
+        }
+      </ion-label>
+
+      <ion-button
+        slot="end"
+        fill="clear"
+        color="danger"
+        (click)="deleteTask(task.id)">
+        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+
+    </ion-item>
+  </ng-template>
+
+  @if (filteredTasks().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="clipboard-outline"></ion-icon>
+      <p>No hay tareas para mostrar</p>
+    </div>
+  } @else if (useVirtualScroll()) {
+    <cdk-virtual-scroll-viewport itemSize="88" class="tasks-viewport">
+      <ng-container *cdkVirtualFor="let task of filteredTasks(); trackBy: trackByTaskId">
+        <ng-container [ngTemplateOutlet]="taskRow" [ngTemplateOutletContext]="{ $implicit: task }"></ng-container>
+      </ng-container>
+    </cdk-virtual-scroll-viewport>
+  } @else {
+    @for (task of filteredTasks(); track task.id) {
+      <ng-container [ngTemplateOutlet]="taskRow" [ngTemplateOutletContext]="{ $implicit: task }"></ng-container>
+    }
+  }
+
+</div>
 </ion-content>

@@ -14,6 +14,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "20.3.25",
+    "@angular/cdk": "^20.2.14",
     "@angular/common": "20.3.25",
     "@angular/compiler": "20.3.25",
     "@angular/core": "20.3.25",
@@ -27,6 +28,7 @@
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/status-bar": "8.0.3",
     "@ionic/angular": "^8.0.0",
+    "firebase": "^12.17.1",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -47,6 +49,9 @@
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
+    "cordova-android": "^15.1.0",
+    "cordova-ios": "^8.1.1",
+    "cordova-plugin-statusbar": "^4.0.0",
     "eslint": "^9.16.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^48.2.1",
@@ -60,5 +65,14 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.9.0"
   },
-  "description": "An Ionic project"
+  "description": "An Ionic project",
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-statusbar": {}
+    },
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  }
 }

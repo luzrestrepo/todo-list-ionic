@@ -1,27 +1,93 @@
-#container {
-  text-align: center;
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.page-container {
+  max-width: 640px;
+  margin-inline: auto;
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.panel {
+  background: var(--ion-color-light, #f4f5f8);
+  border-radius: var(--app-radius, 14px);
+  padding: 16px;
+  margin-bottom: 20px;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
+.form-item {
+  --background: transparent;
+  --padding-start: 0;
+  margin-bottom: 8px;
+}
 
-  color: #8c8c8c;
+.filter-item {
+  background: var(--ion-color-light, #f4f5f8);
+  border-radius: var(--app-radius, 14px);
+  padding: 4px 12px;
+  margin-bottom: 12px;
+}
 
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 18px;
+  font-weight: 600;
+
+  margin: 20px 0 10px;
+}
+
+.tasks-viewport {
+  height: 50vh;
+  min-height: 220px;
+}
+
+.task-item {
+  --padding-start: 4px;
+
+  transition: opacity 0.2s ease;
+}
+
+.task-title {
+  font-weight: 500;
+}
+
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.task-chip {
+  margin-top: 4px;
+}
+
+.toggle-button {
   margin: 0;
 }
 
-#container a {
-  text-decoration: none;
+.category-item {
+  --padding-start: 4px;
+
+  ion-chip {
+    margin-right: auto;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 32px 16px;
+
+  color: var(--ion-color-medium);
+  text-align: center;
+
+  ion-icon {
+    font-size: 40px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
 }
